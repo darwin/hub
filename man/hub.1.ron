@@ -59,6 +59,12 @@ After configuring the alias, the following commands have superpowers:
     your GitHub login. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git".
 
+  * `git clip` [`-p`] <OPTIONS>:
+    Copies github's url of last commit into clipboard for repository found 
+    in the current directory. You may specify any additional git log <OPTIONS> to 
+    select particular commit or range of commits. Ranges of commits are presented 
+    by link to github's compare view. Use `-p` to open a page with https.
+
   * `git help`:
     Display enhanced git-help(1).
 
@@ -133,6 +139,17 @@ cloning:
 
     $ git browse -p resque
     > open https://github.com:YOUR_USER/resque
+
+### git clip
+
+    $ git clip
+    > -> http://github.com/defunkt/hub/commit/74d66aa
+    
+    $ git clip -n3
+    > -> http://github.com/defunkt/hub/compare/66171f7^...74d66aa
+
+    $ git clip -n1 66171f7
+    > -> http://github.com/defunkt/hub/commit/66171f7
 
 ### git help
 

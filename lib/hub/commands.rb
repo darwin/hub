@@ -205,6 +205,63 @@ module Hub
       args.push "#{protocol}://github.com/#{user}/#{repo}"
     end
 
+    # $ hub clip
+    # > -> http://github.com/defunkt/hub/commit/74d66aa
+    #
+    # $ hub clip -n3
+    # > -> http://github.com/defunkt/hub/compare/66171f7^...74d66aa
+    #
+    # $ hub clip -n1 66171f7
+    # > -> http://github.com/defunkt/hub/commit/66171f7
+    def clip(args)
+      require 'Open3'
+
+      args.shift
+      protocol = args.delete('-p') ? 'https' : 'http'
+
+      if !OWNER.empty?
+        user, repo = OWNER, REPO
+      else
+        warn "Usage: hub clip [LOG OPTIONS] <= and working folder must be inside some git repo"
+        exit(1)
+      end
+      
+      unless args.size>0
+          # $ hub clip
+          args.push "-n1"
+      end
+      
+      args.unshift "log"
+      args.push '--oneline'
+      
+      # http://stackoverflow.com/questions/690151/getting-output-of-system-calls-in-ruby/2379965#2379965
+      stdin, stdout, stderr = Open3.popen3(*args.to_exec)  # git log <clip params> --oneliner
+      
+      # 74d66aa 1.0.0
+      # 304e792 `remote add -p origin rtomayko/tilt`
+      # 66171f7 hub remote add rtomayko/tilt
+      log = stdout.read.split("\n")
+      
+      newest = log.first.split(' ').first
+      oldest = log.last.split(' ').first
+      
+      if newest==oldest
+          path = "commit/#{newest}"
+      else
+          path = "compare/#{oldest}^...#{newest}" # discussion: http://support.github.com/discussions/feature-requests/733-closed-ranges-in-compare
+      end
+      url = "#{protocol}://github.com/#{user}/#{repo}/#{path}"
+      
+      # feed pbcopy
+      stdin, stdout, stderr = Open3.popen3("pbcopy")
+      stdin.print url # print does not include a newline
+
+      # also echo final url into terminal
+      args.clear
+      args.executable = 'echo'
+      args.push "-> #{url}"
+    end
+
     # $ hub hub standalone
     # Prints the "standalone" version of hub for an easy, memorable
     # installation sequence:
