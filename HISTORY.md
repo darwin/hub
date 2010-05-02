@@ -1,3 +1,18 @@
+## 1.3.0 (2010-04-29)
+
+* Tracking branches awareness
+* `git browse` subpages (e.g. `git browse repo issues`)
+* `git fetch <fork>` adds new remotes if missing
+* `cherry-pick` supports GitHub commit URLs and "user@sha" notation
+
+## 1.2.0 (2010-04-11)
+
+* `hub compare` command - Thanks joshthecoder!
+
+## 1.1.0 (2010-04-07)
+
+* `hub fork` command - Thanks Mislav!
+
 ## 1.0.3 (2010-03-10)
 
 * Bugfix: `hub remote` for repos with -, /, etc

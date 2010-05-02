@@ -3,14 +3,19 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` <COMMAND> <OPTIONS>   
-`hub alias` [`-s`] <SHELL>   
+`hub` <COMMAND> <OPTIONS>  
+`hub alias` [`-s`] <SHELL>
 
-`git init -g` <OPTIONS>   
-`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>   
-`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]   
-`git browse` [`-p`] [<USER>/]<REPOSITORY>   
-`git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>
+`git init -g` <OPTIONS>  
+`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
+`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
+`git fetch` <USER-1>,[<USER-2>,...]  
+`git cherry-pick` <GITHUB-REF>  
+`git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>  
+`git browse` [`-p`] [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
+`git compare` [`-p`] [`-u`] [<USER>] [<START>...]<END>  
+`git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
+`git fork` [`--no-remote`]  
 
 ## DESCRIPTION
 
@@ -20,10 +25,8 @@ alias command displays information on configuring your environment:
   * `hub alias` [`-s`] <SHELL>:
     Writes shell aliasing code for <SHELL> (`bash`, `sh`, `zsh`,
     `csh`) to standard output. With the `-s` option, the output of
-    this command can be evaluated directly within the shell:
+    this command can be evaluated directly within the shell:  
     `eval $(hub alias -s bash)`
-
-After configuring the alias, the following commands have superpowers:
 
   * `git init` `-g` <OPTIONS>:
     Create a git repository as with git-init(1) and add remote `origin` at
@@ -43,15 +46,33 @@ After configuring the alias, the following commands have superpowers:
     "git@github.com:<USER>/<REPOSITORY>.git". If <USER> is "origin"
     then uses your GitHub login.
 
+  * `git fetch` <USER-1>,[<USER-2>,...]:
+    Adds missing remote(s) with `git remote add` prior to fetching. New
+    remotes are only added if they correspond to valid forks on GitHub.
+
+  * `git cherry-pick` <GITHUB-REF>:
+    Cherry-pick a commit from a fork using either full URL to the commit
+    or GitHub-flavored Markdown notation, which is `user@sha`. If the remote
+    doesn't yet exist, it will be added. A `git fetch <user>` is issued
+    prior to the cherry-pick attempt.
+
   * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
     multiple `git push` commands.
 
-  * `git browse` [`-p`] [[<USER>`/`]<REPOSITORY>]:
+  * `git browse` [`-p`] [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]:
     Open repository's GitHub page in the system's default web browser
     using `open(1)` or the `BROWSER` env variable. Use `-p` to open a
     page with https. If the repository isn't specified, `browse` opens
-    the page of the repository found in the current directory.
+    the page of the repository found in the current directory. If SUBPAGE
+    is specified, the browser will open on the specified subpage: one of
+    "wiki", "commits", "issues" or other (the default is "tree").
+
+  * `git compare` [`-p`] [`-u`] [<USER>] [<START>...]<END>:
+    Open a GitHub compare view page in the system's default web browser.
+    <START> to <END> are branch names, tag names, or commit SHA1s specifying
+    the range of history to compare. If <START> is omitted, GitHub will
+    compare against the base branch (the default is "master").
 
   * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:
     Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
@@ -59,11 +80,10 @@ After configuring the alias, the following commands have superpowers:
     your GitHub login. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git".
 
-  * `git clip` [`-p`] <OPTIONS>:
-    Copies github's url of last commit into clipboard for repository found 
-    in the current directory. You may specify any additional git log <OPTIONS> to 
-    select particular commit or range of commits. Ranges of commits are presented 
-    by link to github's compare view. Use `-p` to open a page with https.
+  * `git fork` [`--no-remote`]:
+    Forks the original project (referenced by "origin" remote) on GitHub and
+    adds a new remote for it under your username. Requires `github.token` to
+    be set (see CONFIGURATION).
 
   * `git help`:
     Display enhanced git-help(1).
@@ -74,9 +94,10 @@ Use git-config(1) to display the currently configured GitHub username:
 
     $ git config --global github.user
 
-Or, set the GitHub username with:
+Or, set the GitHub username and token with:
 
     $ git config --global github.user <username>
+    $ git config --global github.token <token>
 
 See <http://github.com/guides/local-github-config> for more
 information.
@@ -84,7 +105,7 @@ information.
 You can also tell `hub` to use `http://` rather than `git://` when
 cloning:
 
-    $ git config --global --add hub.http-clone yes
+    $ git config --global --bool hub.http-clone true
 
 ## EXAMPLES
 
@@ -113,6 +134,37 @@ cloning:
     $ git remote add origin
     > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
 
+### git fetch
+
+    $ git fetch mislav
+    > git remote add mislav git://github.com/mislav/REPO.git
+    > git fetch mislav
+
+    $ git fetch mislav,xoebus
+    > git remote add mislav ...
+    > git remote add xoebus ...
+    > git fetch --multiple mislav xoebus
+
+### git cherry-pick
+
+    $ git cherry-pick http://github.com/mislav/REPO/commit/SHA
+    > git remote add -f mislav git://github.com/mislav/REPO.git
+    > git cherry-pick SHA
+
+    $ git cherry-pick mislav@SHA
+    > git remote add -f mislav git://github.com/mislav/CURRENT_REPO.git
+    > git cherry-pick SHA
+
+    $ git cherry-pick mislav@SHA
+    > git fetch mislav
+    > git cherry-pick SHA
+
+### git fork
+
+    $ git fork
+    ... hardcore forking action ...
+    > git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+
 ### git init
 
     $ git init -g
@@ -128,28 +180,40 @@ cloning:
 
 ### git browse
 
+    $ git browse
+    > open http://github.com/CURRENT_REPO
+
+    $ git browse -- issues
+    > open http://github.com/CURRENT_REPO/issues
+
     $ git browse schacon/ticgit
     > open http://github.com/schacon/ticgit
 
     $ git browse -p schacon/ticgit
-    > open http://github.com/schacon/ticgit
+    > open https://github.com/schacon/ticgit
 
     $ git browse resque
     > open http://github.com/YOUR_USER/resque
 
+    $ git browse resque network
+    > open http://github.com/YOUR_USER/resque/network
+
     $ git browse -p resque
-    > open https://github.com:YOUR_USER/resque
+    > open https://github.com/YOUR_USER/resque
 
-### git clip
+### git compare
 
-    $ git clip
-    > -> http://github.com/defunkt/hub/commit/74d66aa
-    
-    $ git clip -n3
-    > -> http://github.com/defunkt/hub/compare/66171f7^...74d66aa
+    $ git compare refactor
+    > open http://github.com/CURRENT_REPO/compare/refactor
 
-    $ git clip -n1 66171f7
-    > -> http://github.com/defunkt/hub/commit/66171f7
+    $ git compare 1.0...1.1
+    > open http://github.com/CURRENT_REPO/compare/1.0...1.1
+
+    $ git compare -u fix
+    > (http://github.com/CURRENT_REPO/compare/fix)
+
+    $ git compare other-user patch
+    > open http://github.com/other-user/REPO/compare/patch
 
 ### git help
 

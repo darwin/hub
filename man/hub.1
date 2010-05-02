@@ -1,7 +1,7 @@
-.\" generated with Ronn/v0.4.1
+.\" generated with Ronn/v0.5
 .\" http://github.com/rtomayko/ronn/
 .
-.TH "HUB" "1" "March 2010" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "April 2010" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \-\- git + hub = github
@@ -11,8 +11,6 @@
 .
 .br
 \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
-.
-.br
 .
 .P
 \fBgit init \-g\fR \fIOPTIONS\fR
@@ -24,10 +22,25 @@
 \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
 .
 .br
-\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR/]\fIREPOSITORY\fR
+\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]
+.
+.br
+\fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
+.
+.br
+\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
+.
+.br
+\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
+.
+.br
+\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR
 .
 .br
 \fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.
+.br
+\fBgit fork\fR [\fB\-\-no\-remote\fR]
 .
 .SH "DESCRIPTION"
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
@@ -36,10 +49,10 @@ alias command displays information on configuring your environment:
 .TP
 \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output. With the \fB\-s\fR option, the output of
-this command can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR
+this command can be evaluated directly within the shell:
 .
-.P
-After configuring the alias, the following commands have superpowers:
+.br
+\fBeval $(hub alias \-s bash)\fR
 .
 .TP
 \fBgit init\fR \fB\-g\fR \fIOPTIONS\fR
@@ -61,22 +74,48 @@ current working directory is used. With \fB\-p\fR, use private remote
 then uses your GitHub login.
 .
 .TP
+\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]
+Adds missing remote(s) with \fBgit remote add\fR prior to fetching. New
+remotes are only added if they correspond to valid forks on GitHub.
+.
+.TP
+\fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
+Cherry\-pick a commit from a fork using either full URL to the commit
+or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR. If the remote
+doesn't yet exist, it will be added. A \fBgit fetch <user>\fR is issued
+prior to the cherry\-pick attempt.
+.
+.TP
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
 Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
 .
 .TP
-\fBgit browse\fR [\fB\-p\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR]
+\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
 Open repository's GitHub page in the system's default web browser
 using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
 page with https. If the repository isn't specified, \fBbrowse\fR opens
-the page of the repository found in the current directory.
+the page of the repository found in the current directory. If SUBPAGE
+is specified, the browser will open on the specified subpage: one of
+"wiki", "commits", "issues" or other (the default is "tree").
+.
+.TP
+\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR
+Open a GitHub compare view page in the system's default web browser. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying
+the range of history to compare. If \fISTART\fR is omitted, GitHub will
+compare against the base branch (the default is "master").
 .
 .TP
 \fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
 Submodule repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-submodule(1). When \fIUSER\fR/ is omitted, assumes
 your GitHub login. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
+.
+.TP
+\fBgit fork\fR [\fB\-\-no\-remote\fR]
+Forks the original project (referenced by "origin" remote) on GitHub and
+adds a new remote for it under your username. Requires \fBgithub.token\fR to
+be set (see CONFIGURATION).
 .
 .TP
 \fBgit help\fR
@@ -88,6 +127,7 @@ Use git\-config(1) to display the currently configured GitHub username:
 .IP "" 4
 .
 .nf
+
 $ git config \-\-global github.user
 .
 .fi
@@ -95,12 +135,14 @@ $ git config \-\-global github.user
 .IP "" 0
 .
 .P
-Or, set the GitHub username with:
+Or, set the GitHub username and token with:
 .
 .IP "" 4
 .
 .nf
+
 $ git config \-\-global github.user <username>
+$ git config \-\-global github.token <token>
 .
 .fi
 .
@@ -117,7 +159,8 @@ cloning:
 .IP "" 4
 .
 .nf
-$ git config \-\-global \-\-add hub.http\-clone yes
+
+$ git config \-\-global \-\-bool hub.http\-clone true
 .
 .fi
 .
@@ -128,12 +171,16 @@ $ git config \-\-global \-\-add hub.http\-clone yes
 .SS "git clone"
 .
 .nf
+
 $ git clone schacon/ticgit
 > git clone git://github.com/schacon/ticgit.git
+
 $ git clone \-p schacon/ticgit
 > git clone git@github.com:schacon/ticgit.git
+
 $ git clone resque
 > git clone git://github.com/YOUR_USER/resque.git
+
 $ git clone \-p resque
 > git clone git@github.com:YOUR_USER/resque.git
 .
@@ -142,18 +189,65 @@ $ git clone \-p resque
 .SS "git remote add"
 .
 .nf
+
 $ git remote add rtomayko
 > git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git
+
 $ git remote add \-p rtomayko
 > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
+
 $ git remote add origin
 > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+.
+.fi
+.
+.SS "git fetch"
+.
+.nf
+
+$ git fetch mislav
+> git remote add mislav git://github.com/mislav/REPO.git
+> git fetch mislav
+
+$ git fetch mislav,xoebus
+> git remote add mislav ...
+> git remote add xoebus ...
+> git fetch \-\-multiple mislav xoebus
+.
+.fi
+.
+.SS "git cherry\-pick"
+.
+.nf
+
+$ git cherry\-pick http://github.com/mislav/REPO/commit/SHA
+> git remote add \-f mislav git://github.com/mislav/REPO.git
+> git cherry\-pick SHA
+
+$ git cherry\-pick mislav@SHA
+> git remote add \-f mislav git://github.com/mislav/CURRENT_REPO.git
+> git cherry\-pick SHA
+
+$ git cherry\-pick mislav@SHA
+> git fetch mislav
+> git cherry\-pick SHA
+.
+.fi
+.
+.SS "git fork"
+.
+.nf
+
+$ git fork
+... hardcore forking action ...
+> git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 .
 .fi
 .
 .SS "git init"
 .
 .nf
+
 $ git init \-g
 > git init
 > git remote add origin git@github.com:YOUR_USER/REPO.git
@@ -163,6 +257,7 @@ $ git init \-g
 .SS "git push"
 .
 .nf
+
 $ git push origin,staging,qa bert_timeout
 > git push origin bert_timeout
 > git push staging bert_timeout
@@ -173,20 +268,52 @@ $ git push origin,staging,qa bert_timeout
 .SS "git browse"
 .
 .nf
+
+$ git browse
+> open http://github.com/CURRENT_REPO
+
+$ git browse \-\- issues
+> open http://github.com/CURRENT_REPO/issues
+
 $ git browse schacon/ticgit
 > open http://github.com/schacon/ticgit
+
 $ git browse \-p schacon/ticgit
-> open http://github.com/schacon/ticgit
+> open https://github.com/schacon/ticgit
+
 $ git browse resque
 > open http://github.com/YOUR_USER/resque
+
+$ git browse resque network
+> open http://github.com/YOUR_USER/resque/network
+
 $ git browse \-p resque
-> open https://github.com:YOUR_USER/resque
+> open https://github.com/YOUR_USER/resque
+.
+.fi
+.
+.SS "git compare"
+.
+.nf
+
+$ git compare refactor
+> open http://github.com/CURRENT_REPO/compare/refactor
+
+$ git compare 1.0...1.1
+> open http://github.com/CURRENT_REPO/compare/1.0...1.1
+
+$ git compare \-u fix
+> (http://github.com/CURRENT_REPO/compare/fix)
+
+$ git compare other\-user patch
+> open http://github.com/other\-user/REPO/compare/patch
 .
 .fi
 .
 .SS "git help"
 .
 .nf
+
 $ git help
 > (improved git help)
 $ git help hub
@@ -201,4 +328,4 @@ $ git help hub
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
 .
 .SH "SEE ALSO"
-git(1), git\-clone(1), git\-remote(1), git\-init(1),\fIhttp://github.com\fR, \fIhttp://github.com/defunkt/hub\fR
+git(1), git\-clone(1), git\-remote(1), git\-init(1), \fIhttp://github.com\fR, \fIhttp://github.com/defunkt/hub\fR

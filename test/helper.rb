@@ -1,10 +1,20 @@
 require 'test/unit'
+
+begin
+  require 'redgreen'
+rescue LoadError
+end
+
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 require 'hub'
 require 'hub/standalone'
 
 # We're looking for `open` in the tests.
 ENV['BROWSER'] = 'open'
+
+# Setup path with fake executables in case a test hits them
+fakebin_dir = File.expand_path('../fakebin', __FILE__)
+ENV['PATH'] = "#{fakebin_dir}:#{ENV['PATH']}"
 
 class Test::Unit::TestCase
   # Shortcut for creating a `Hub` instance. Pass it what you would
@@ -26,16 +36,22 @@ class Test::Unit::TestCase
   # If a block is given it will be run in the child process before
   # execution begins. You can use this to monkeypatch or fudge the
   # environment before running hub.
-  def hub(args)
+  def hub(args, input = nil)
     parent_read, child_write = IO.pipe
+    child_read, parent_write = IO.pipe if input
 
     fork do
       yield if block_given?
+      $stdin.reopen(child_read) if input
       $stdout.reopen(child_write)
       $stderr.reopen(child_write)
       Hub(args).execute
     end
-
+    
+    if input
+      parent_write.write input
+      parent_write.close
+    end
     child_write.close
     parent_read.read
   end
@@ -72,11 +88,13 @@ class Test::Unit::TestCase
 
   # Asserts that `haystack` includes `needle`.
   def assert_includes(needle, haystack)
-    assert haystack.include?(needle)
+    assert haystack.include?(needle),
+      "expected #{needle.inspect} in #{haystack.inspect}"
   end
 
   # Asserts that `haystack` does not include `needle`.
   def assert_not_includes(needle, haystack)
-    assert !haystack.include?(needle)
+    assert !haystack.include?(needle),
+      "didn't expect #{needle.inspect} in #{haystack.inspect}"
   end
 end
