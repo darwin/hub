@@ -415,12 +415,7 @@ module Hub
       args.shift
       protocol = args.delete('-p') ? 'https' : 'http'
       
-      if !repo_user.empty? && !repo_name.empty?
-        user, repo = repo_user, repo_name
-      else
-        warn "Usage: hub clip [LOG OPTIONS] <= and working folder must be inside some git repo"
-        exit(1)
-      end
+      user, repo = repo_user, repo_name
       
       unless args.size>0
           # $ hub clip

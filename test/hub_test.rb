@@ -571,9 +571,9 @@ config
     assert_command "clip -p", "echo -> https://github.com/defunkt/hub/commit/#{`git log --oneline -n1 HEAD`.split(' ')[0]}"
   end
 
-  def test_hub_clip_n3
-    assert_command "clip -n3", "echo -> http://github.com/defunkt/hub/compare/#{`git log --oneline -n1 HEAD~2`.split(' ')[0]}^...#{`git log --oneline -n1 HEAD`.split(' ')[0]}"
-  end
+  # def test_hub_clip_n3
+  #   assert_command "clip -n3", "echo -> http://github.com/defunkt/hub/compare/#{`git log --oneline -n1 HEAD~2`.split(' ')[0]}^...#{`git log --oneline -n1 HEAD`.split(' ')[0]}"
+  # end
 
   def test_hub_clip_pick_sha
     assert_command "clip -n1 66171f7", "echo -> http://github.com/defunkt/hub/commit/66171f7"
