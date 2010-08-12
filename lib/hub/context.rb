@@ -10,10 +10,14 @@ module Hub
 
     # Parses URLs for git remotes and stores info
     REMOTES = Hash.new do |cache, remote|
-      url = GIT_CONFIG["config remote.#{remote}.url"]
+      if remote
+        url = GIT_CONFIG["config remote.#{remote}.url"]
 
-      if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
-        cache[remote] = { :user => $1, :repo => $2 }
+        if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
+          cache[remote] = { :user => $1, :repo => $2 }
+        else
+          cache[remote] = { }
+        end
       else
         cache[remote] = { }
       end
@@ -61,7 +65,7 @@ module Hub
     end
 
     def remotes
-      list = GIT_CONFIG['remote'].split("\n")
+      list = GIT_CONFIG['remote'].to_s.split("\n")
       main = list.delete('origin') and list.unshift(main)
       list
     end
@@ -71,7 +75,13 @@ module Hub
     end
 
     def current_remote
-      (current_branch && remote_for(current_branch)) || default_remote
+      return if remotes.empty?
+
+      if current_branch
+        remote_for(current_branch)
+      else
+        default_remote
+      end
     end
 
     def default_remote
@@ -94,6 +104,14 @@ module Hub
       GIT_CONFIG['config --bool hub.http-clone'] == 'true'
     end
 
+    # Core.repositoryformatversion should exist for all git
+    # repositories, and be blank for all non-git repositories. If
+    # there's a better config setting to check here, this can be
+    # changed without breaking anything.
+    def is_repo?
+      GIT_CONFIG['config core.repositoryformatversion']
+    end
+
     def github_url(options = {})
       repo = options[:repo]
       user, repo = repo.split('/') if repo && repo.index('/')
@@ -110,12 +128,14 @@ module Hub
         '%s//github.com/%s/%s%s' % [scheme, user, repo, path]
       else
         if secure
-          'git@github.com:%s/%s.git'
+          url = 'git@github.com:%s/%s.git'
         elsif http_clone?
-          'http://github.com/%s/%s.git'
+          url = 'http://github.com/%s/%s.git'
         else
-          'git://github.com/%s/%s.git'
-        end % [user, repo]
+          url = 'git://github.com/%s/%s.git'
+        end
+
+        url % [user, repo]
       end
     end
   end
